@@ -1,7 +1,8 @@
-import os
+import json
 import logging
+import os
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException
@@ -25,6 +26,9 @@ if not SUPABASE_URL:
 if not SUPABASE_SECRET_KEY:
     raise RuntimeError("SUPABASE_SECRET_KEY is missing.")
 
+if not VAPI_TOOL_SECRET:
+    raise RuntimeError("VAPI_TOOL_SECRET is missing.")
+
 
 # =========================================================
 # SUPABASE CLIENT
@@ -42,10 +46,9 @@ supabase: Client = create_client(
 
 app = FastAPI(
     title="Best Driving School Booking API",
-    version="1.0.0"
+    version="1.0.0",
 )
 
-# Use Uvicorn logger so logs appear in Dokploy
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -53,19 +56,17 @@ logger = logging.getLogger("uvicorn.error")
 # BUSINESS RULES
 # =========================================================
 
-# Python weekday:
-# Monday    = 0
-# Tuesday   = 1
+# Python weekday():
+# Monday = 0
+# Tuesday = 1
 # Wednesday = 2
-# Thursday  = 3
-# Friday    = 4
-# Saturday  = 5
-# Sunday    = 6
-
-# School open:
-# Sunday - Thursday
-# Closed:
-# Friday + Saturday
+# Thursday = 3
+# Friday = 4
+# Saturday = 5
+# Sunday = 6
+#
+# Open: Sunday - Thursday
+# Closed: Friday + Saturday
 
 OPEN_DAYS = {6, 0, 1, 2, 3}
 
@@ -80,7 +81,7 @@ SLOTS = [
 
 
 # =========================================================
-# PYDANTIC REQUEST MODELS
+# REQUEST MODELS
 # =========================================================
 
 class AvailabilityRequest(BaseModel):
@@ -105,7 +106,7 @@ class BookingRequest(BaseModel):
 def home():
     return {
         "status": "ok",
-        "message": "Best Driving School Booking API is running"
+        "message": "Best Driving School Booking API is running",
     }
 
 
@@ -114,10 +115,6 @@ def home():
 # =========================================================
 
 def parse_date(value: str):
-    """
-    Convert YYYY-MM-DD into Python date.
-    """
-
     try:
         return datetime.strptime(
             value,
@@ -127,27 +124,15 @@ def parse_date(value: str):
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail="Date must use YYYY-MM-DD format."
+            detail="Date must use YYYY-MM-DD format.",
         )
 
 
-def is_open_day(booking_date):
-    """
-    True for Sunday-Thursday.
-    """
-
+def is_open_day(booking_date) -> bool:
     return booking_date.weekday() in OPEN_DAYS
 
 
-def format_clock(value: str):
-    """
-    Examples:
-
-    09:00    -> 9:00 AM
-    13:00    -> 1:00 PM
-    09:00:00 -> 9:00 AM
-    """
-
+def format_clock(value: str) -> str:
     clean_value = value[:5]
 
     parsed_time = datetime.strptime(
@@ -158,29 +143,188 @@ def format_clock(value: str):
     return parsed_time.strftime("%-I:%M %p")
 
 
-def format_slot(start: str, end: str):
-    """
-    Example:
-
-    09:00 + 11:00
-    -> 9:00 AM to 11:00 AM
-    """
-
+def format_slot(start: str, end: str) -> str:
     return (
         f"{format_clock(start)} "
         f"to {format_clock(end)}"
     )
 
 
-def clean_vapi_string(value: str):
+def clean_vapi_string(value: str) -> str:
     """
-    Vapi tool results should be a single-line string.
-    This removes accidental newlines / extra whitespace.
+    Keep Vapi result as a clean single-line string.
     """
-
     return " ".join(
         str(value).split()
     )
+
+
+def first_not_none(*values):
+    """
+    Return the first value that is not None.
+    """
+    for value in values:
+        if value is not None:
+            return value
+
+    return None
+
+
+def normalize_parameters(raw: Any) -> Dict[str, Any]:
+    """
+    Vapi parameters normally arrive as dicts.
+    Also supports JSON strings as a fallback.
+    """
+
+    if raw is None:
+        return {}
+
+    if isinstance(raw, dict):
+        return raw
+
+    if isinstance(raw, str):
+
+        try:
+            parsed = json.loads(raw)
+
+            if isinstance(parsed, dict):
+                return parsed
+
+        except json.JSONDecodeError:
+            pass
+
+    return {}
+
+
+def extract_vapi_tool_calls(
+    message: Dict[str, Any]
+) -> List[Dict[str, Any]]:
+    """
+    Supports Vapi's current documented formats:
+
+    1)
+    toolWithToolCallList:
+      [
+        {
+          "name": "check_available_slots",
+          "toolCall": {
+            "id": "...",
+            "parameters": {...}
+          }
+        }
+      ]
+
+    2)
+    toolCallList:
+      [
+        {
+          "id": "...",
+          "name": "check_available_slots",
+          "parameters": {...}
+        }
+      ]
+
+    Also keeps fallbacks for:
+    - arguments
+    - OpenAI-style function.name / function.arguments
+    """
+
+    normalized: List[Dict[str, Any]] = []
+
+    # -----------------------------------------------------
+    # PREFERRED VAPI WRAPPED FORMAT
+    # -----------------------------------------------------
+
+    wrapped_calls = (
+        message.get("toolWithToolCallList")
+        or []
+    )
+
+    if wrapped_calls:
+
+        for wrapped in wrapped_calls:
+
+            tool_call = (
+                wrapped.get("toolCall")
+                or {}
+            )
+
+            function_block = (
+                tool_call.get("function")
+                or {}
+            )
+
+            tool_call_id = first_not_none(
+                tool_call.get("id"),
+                wrapped.get("id"),
+            )
+
+            tool_name = first_not_none(
+                wrapped.get("name"),
+                tool_call.get("name"),
+                function_block.get("name"),
+            )
+
+            raw_parameters = first_not_none(
+                tool_call.get("parameters"),
+                tool_call.get("arguments"),
+                function_block.get("parameters"),
+                function_block.get("arguments"),
+                wrapped.get("parameters"),
+                wrapped.get("arguments"),
+            )
+
+            normalized.append({
+                "id": tool_call_id,
+                "name": tool_name,
+                "parameters": normalize_parameters(
+                    raw_parameters
+                ),
+            })
+
+        return normalized
+
+    # -----------------------------------------------------
+    # DIRECT toolCallList FORMAT
+    # -----------------------------------------------------
+
+    direct_calls = (
+        message.get("toolCallList")
+        or []
+    )
+
+    for tool_call in direct_calls:
+
+        function_block = (
+            tool_call.get("function")
+            or {}
+        )
+
+        tool_call_id = (
+            tool_call.get("id")
+        )
+
+        tool_name = first_not_none(
+            tool_call.get("name"),
+            function_block.get("name"),
+        )
+
+        raw_parameters = first_not_none(
+            tool_call.get("parameters"),
+            tool_call.get("arguments"),
+            function_block.get("parameters"),
+            function_block.get("arguments"),
+        )
+
+        normalized.append({
+            "id": tool_call_id,
+            "name": tool_name,
+            "parameters": normalize_parameters(
+                raw_parameters
+            ),
+        })
+
+    return normalized
 
 
 # =========================================================
@@ -197,7 +341,7 @@ def check_availability(
     )
 
     # -----------------------------------------------------
-    # CLOSED DAY
+    # CLOSED DAY CHECK
     # -----------------------------------------------------
 
     if not is_open_day(requested_date):
@@ -205,13 +349,17 @@ def check_availability(
         return {
             "available": False,
             "closed": True,
-            "booking_date": payload.booking_date,
-            "service_type": payload.service_type,
-            "message": (
+            "booking_date":
+                payload.booking_date,
+
+            "service_type":
+                payload.service_type,
+
+            "message":
                 "The driving school is closed "
-                "on Fridays and Saturdays."
-            ),
-            "available_slots": []
+                "on Fridays and Saturdays.",
+
+            "available_slots": [],
         }
 
     # -----------------------------------------------------
@@ -254,19 +402,24 @@ def check_availability(
                 "label": format_slot(
                     start,
                     end
-                )
+                ),
             })
 
-    # -----------------------------------------------------
-    # RESPONSE
-    # -----------------------------------------------------
-
     return {
-        "available": bool(available_slots),
-        "closed": False,
-        "booking_date": payload.booking_date,
-        "service_type": payload.service_type,
-        "available_slots": available_slots
+        "available":
+            bool(available_slots),
+
+        "closed":
+            False,
+
+        "booking_date":
+            payload.booking_date,
+
+        "service_type":
+            payload.service_type,
+
+        "available_slots":
+            available_slots,
     }
 
 
@@ -284,7 +437,7 @@ def create_booking(
     )
 
     # -----------------------------------------------------
-    # CLOSED DAY
+    # CLOSED DAY CHECK
     # -----------------------------------------------------
 
     if not is_open_day(requested_date):
@@ -294,11 +447,11 @@ def create_booking(
             detail=(
                 "The driving school is closed "
                 "on Fridays and Saturdays."
-            )
+            ),
         )
 
     # -----------------------------------------------------
-    # VALID SLOT
+    # VALID SLOT CHECK
     # -----------------------------------------------------
 
     valid_slots = {
@@ -306,7 +459,8 @@ def create_booking(
         for start, end in SLOTS
     }
 
-    # Normalize 09:00:00 -> 09:00
+    # Normalize:
+    # 09:00:00 -> 09:00
     requested_start_time = (
         payload.start_time[:5]
     )
@@ -320,11 +474,11 @@ def create_booking(
                 "Valid start times are "
                 "09:00, 11:00, 13:00, "
                 "15:00 and 17:00."
-            )
+            ),
         )
 
     # -----------------------------------------------------
-    # CHECK IF SLOT ALREADY BOOKED
+    # CHECK SLOT AGAIN BEFORE SAVING
     # -----------------------------------------------------
 
     existing = (
@@ -348,32 +502,40 @@ def create_booking(
 
     if existing.data:
 
-        updated_availability = check_availability(
-            AvailabilityRequest(
-                booking_date=payload.booking_date,
-                service_type=payload.service_type
+        updated_availability = (
+            check_availability(
+                AvailabilityRequest(
+                    booking_date=
+                        payload.booking_date,
+
+                    service_type=
+                        payload.service_type,
+                )
             )
         )
 
         return {
             "success": False,
-            "reason": "slot_already_booked",
-            "message": (
-                "That time slot is no longer available."
-            ),
-            "available_slots": updated_availability.get(
-                "available_slots",
-                []
-            )
+
+            "reason":
+                "slot_already_booked",
+
+            "message":
+                "That time slot is no "
+                "longer available.",
+
+            "available_slots":
+                updated_availability.get(
+                    "available_slots",
+                    []
+                ),
         }
 
-    # -----------------------------------------------------
-    # END TIME
-    # -----------------------------------------------------
-
-    end_time = valid_slots[
-        requested_start_time
-    ]
+    end_time = (
+        valid_slots[
+            requested_start_time
+        ]
+    )
 
     # -----------------------------------------------------
     # INSERT BOOKING
@@ -407,35 +569,46 @@ def create_booking(
                     "confirmed",
 
                 "notes":
-                    payload.notes
+                    payload.notes,
             })
             .execute()
         )
 
-    except Exception as error:
+    except Exception:
 
         logger.exception(
             "DATABASE BOOKING ERROR"
         )
 
-        updated_availability = check_availability(
-            AvailabilityRequest(
-                booking_date=payload.booking_date,
-                service_type=payload.service_type
+        updated_availability = (
+            check_availability(
+                AvailabilityRequest(
+                    booking_date=
+                        payload.booking_date,
+
+                    service_type=
+                        payload.service_type,
+                )
             )
         )
 
         return {
             "success": False,
-            "reason": "booking_conflict",
+
+            "reason":
+                "booking_conflict",
+
             "message": (
                 "That slot could not be booked "
-                "because it may have just become unavailable."
+                "because it may have just "
+                "become unavailable."
             ),
-            "available_slots": updated_availability.get(
-                "available_slots",
-                []
-            )
+
+            "available_slots":
+                updated_availability.get(
+                    "available_slots",
+                    []
+                ),
         }
 
     # -----------------------------------------------------
@@ -446,33 +619,48 @@ def create_booking(
 
         raise HTTPException(
             status_code=500,
-            detail="Booking could not be created."
+            detail=(
+                "Booking could not be created."
+            ),
         )
 
     booking = response.data[0]
 
     confirmed_time = format_slot(
         booking["start_time"],
-        booking["end_time"]
+        booking["end_time"],
     )
-
-    # -----------------------------------------------------
-    # SUCCESS
-    # -----------------------------------------------------
 
     return {
         "success": True,
-        "booking_id": booking["id"],
-        "customer_name": booking["customer_name"],
-        "callback_number": booking["callback_number"],
-        "service_type": booking["service_type"],
-        "booking_date": booking["booking_date"],
-        "start_time": booking["start_time"],
-        "end_time": booking["end_time"],
-        "status": booking["status"],
-        "message": (
-            f"Booking confirmed for {confirmed_time}."
-        )
+
+        "booking_id":
+            booking["id"],
+
+        "customer_name":
+            booking["customer_name"],
+
+        "callback_number":
+            booking["callback_number"],
+
+        "service_type":
+            booking["service_type"],
+
+        "booking_date":
+            booking["booking_date"],
+
+        "start_time":
+            booking["start_time"],
+
+        "end_time":
+            booking["end_time"],
+
+        "status":
+            booking["status"],
+
+        "message":
+            f"Booking confirmed for "
+            f"{confirmed_time}.",
     }
 
 
@@ -485,102 +673,127 @@ def handle_vapi_tools(
     payload: dict,
     authorization: Optional[str] = Header(
         default=None
-    )
+    ),
 ):
 
     # -----------------------------------------------------
-    # AUTHENTICATION
+    # BEARER AUTH
     # -----------------------------------------------------
 
-    if VAPI_TOOL_SECRET:
-
-        expected_authorization = (
-            f"Bearer {VAPI_TOOL_SECRET}"
-        )
-
-        if authorization != expected_authorization:
-
-            logger.warning(
-                "VAPI TOOL REQUEST REJECTED: "
-                "invalid authorization"
-            )
-
-            raise HTTPException(
-                status_code=401,
-                detail="Unauthorized"
-            )
-
-    # -----------------------------------------------------
-    # READ VAPI REQUEST
-    # -----------------------------------------------------
-
-    message = payload.get(
-        "message",
-        {}
+    expected_authorization = (
+        f"Bearer {VAPI_TOOL_SECRET}"
     )
 
-    tool_calls = message.get(
-        "toolCallList",
-        []
+    if authorization != expected_authorization:
+
+        logger.warning(
+            "VAPI TOOL REQUEST REJECTED: "
+            "invalid authorization"
+        )
+
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized",
+        )
+
+    # -----------------------------------------------------
+    # READ MESSAGE
+    # -----------------------------------------------------
+
+    message = (
+        payload.get("message")
+        or {}
+    )
+
+    logger.info(
+        "VAPI MESSAGE RECEIVED | "
+        "type=%s | keys=%s",
+        message.get("type"),
+        list(message.keys()),
+    )
+
+    # -----------------------------------------------------
+    # NORMALIZE VAPI TOOL CALL FORMAT
+    # -----------------------------------------------------
+
+    tool_calls = (
+        extract_vapi_tool_calls(
+            message
+        )
     )
 
     if not tool_calls:
 
         logger.warning(
             "VAPI TOOL REQUEST: "
-            "No toolCallList found"
+            "no usable tool calls found"
         )
 
         raise HTTPException(
             status_code=400,
-            detail="No Vapi tool calls found."
+            detail=(
+                "No Vapi tool calls found."
+            ),
         )
 
     logger.info(
-        "VAPI TOOL REQUEST RECEIVED | count=%s",
-        len(tool_calls)
+        "VAPI TOOL REQUEST RECEIVED | "
+        "count=%s",
+        len(tool_calls),
     )
 
     results = []
 
     # -----------------------------------------------------
-    # PROCESS EACH TOOL CALL
+    # PROCESS TOOL CALLS
     # -----------------------------------------------------
 
     for tool_call in tool_calls:
 
-        tool_call_id = tool_call.get(
-            "id"
+        tool_call_id = (
+            tool_call.get("id")
         )
 
-        tool_name = tool_call.get(
-            "name"
+        tool_name = (
+            tool_call.get("name")
         )
 
-        arguments = tool_call.get(
-            "arguments",
-            {}
+        arguments = (
+            tool_call.get("parameters")
+            or {}
         )
 
-        # Do NOT log customer values / phone numbers.
         logger.info(
             "VAPI TOOL START | "
             "tool=%s | "
             "toolCallId=%s | "
             "argument_keys=%s",
+
             tool_name,
             tool_call_id,
-            list(arguments.keys())
+            list(arguments.keys()),
         )
+
+        if not tool_call_id:
+
+            logger.warning(
+                "VAPI TOOL CALL missing id | "
+                "tool=%s",
+                tool_name,
+            )
+
+            continue
 
         try:
 
             # =================================================
-            # TOOL 1:
+            # TOOL:
             # CHECK AVAILABLE SLOTS
             # =================================================
 
-            if tool_name == "check_available_slots":
+            if tool_name == (
+                "check_available_slots"
+            ):
 
                 booking_date_argument = (
                     arguments.get(
@@ -594,29 +807,28 @@ def handle_vapi_tools(
                         "booking_date is required."
                     )
 
-                availability_request = (
-                    AvailabilityRequest(
-                        booking_date=(
-                            booking_date_argument
-                        ),
-                        service_type=(
-                            arguments.get(
-                                "service_type",
-                                "driving_lesson"
-                            )
+                availability = (
+                    check_availability(
+                        AvailabilityRequest(
+                            booking_date=
+                                booking_date_argument,
+
+                            service_type=
+                                arguments.get(
+                                    "service_type",
+                                    "driving_lesson",
+                                ),
                         )
                     )
                 )
 
-                availability = check_availability(
-                    availability_request
-                )
-
                 # ---------------------------------------------
-                # CLOSED
+                # CLOSED DAY
                 # ---------------------------------------------
 
-                if availability.get("closed"):
+                if availability.get(
+                    "closed"
+                ):
 
                     booking_date = (
                         availability.get(
@@ -625,16 +837,17 @@ def handle_vapi_tools(
                     )
 
                     vapi_result = (
-                        "The driving school is closed "
-                        f"on {booking_date}. "
-                        "The school is closed on Fridays "
-                        "and Saturdays. "
-                        "Ask the caller to choose a date "
-                        "from Sunday through Thursday."
+                        "The driving school is "
+                        f"closed on {booking_date}. "
+                        "The school is closed on "
+                        "Fridays and Saturdays. "
+                        "Ask the caller to choose "
+                        "a date from Sunday through "
+                        "Thursday."
                     )
 
                 # ---------------------------------------------
-                # NO SLOTS
+                # NO AVAILABLE SLOT
                 # ---------------------------------------------
 
                 elif not availability.get(
@@ -648,17 +861,18 @@ def handle_vapi_tools(
                     )
 
                     vapi_result = (
-                        "There are no available driving "
-                        "lesson slots for "
+                        "There are no available "
+                        "driving lesson slots for "
                         f"{booking_date}. "
-                        "Tell the caller there are no "
-                        "open lesson times on that date "
-                        "and ask for another date. "
+                        "Tell the caller there are "
+                        "no open lesson times on "
+                        "that date and ask for "
+                        "another date. "
                         "Do not invent availability."
                     )
 
                 # ---------------------------------------------
-                # SLOTS AVAILABLE
+                # AVAILABLE SLOTS
                 # ---------------------------------------------
 
                 else:
@@ -683,25 +897,27 @@ def handle_vapi_tools(
                     )
 
                     vapi_result = (
-                        "Available driving lesson slots "
-                        f"for {booking_date}: "
+                        "Available driving lesson "
+                        f"slots for {booking_date}: "
                         f"{slots_text}. "
                         "Tell the caller these exact "
-                        "available times now. "
-                        "Ask which one they would like "
+                        "available times now and ask "
+                        "which one they would like "
                         "to book. "
-                        "Do not offer any time that is "
-                        "not listed here."
+                        "Do not offer any time that "
+                        "is not listed."
                     )
 
             # =================================================
-            # TOOL 2:
+            # TOOL:
             # CREATE BOOKING
             # =================================================
 
-            elif tool_name == "create_booking":
+            elif tool_name == (
+                "create_booking"
+            ):
 
-                required_booking_arguments = [
+                required_fields = [
                     "customer_name",
                     "callback_number",
                     "service_type",
@@ -709,49 +925,59 @@ def handle_vapi_tools(
                     "start_time",
                 ]
 
-                missing_arguments = [
-                    key
-                    for key in required_booking_arguments
-                    if not arguments.get(key)
+                missing_fields = [
+                    field
+                    for field
+                    in required_fields
+                    if not arguments.get(
+                        field
+                    )
                 ]
 
-                if missing_arguments:
+                if missing_fields:
 
                     raise ValueError(
-                        "Missing required booking fields: "
+                        "Missing required booking "
+                        "fields: "
                         + ", ".join(
-                            missing_arguments
+                            missing_fields
                         )
                     )
 
-                booking_request = BookingRequest(
-                    customer_name=arguments[
-                        "customer_name"
-                    ],
+                booking_result = (
+                    create_booking(
+                        BookingRequest(
+                            customer_name=
+                                arguments[
+                                    "customer_name"
+                                ],
 
-                    callback_number=arguments[
-                        "callback_number"
-                    ],
+                            callback_number=
+                                arguments[
+                                    "callback_number"
+                                ],
 
-                    service_type=arguments[
-                        "service_type"
-                    ],
+                            service_type=
+                                arguments[
+                                    "service_type"
+                                ],
 
-                    booking_date=arguments[
-                        "booking_date"
-                    ],
+                            booking_date=
+                                arguments[
+                                    "booking_date"
+                                ],
 
-                    start_time=arguments[
-                        "start_time"
-                    ],
+                            start_time=
+                                arguments[
+                                    "start_time"
+                                ],
 
-                    notes=arguments.get(
-                        "notes"
+                            notes=
+                                arguments.get(
+                                    "notes"
+                                ),
+                        )
                     )
-                )
-
-                booking_result = create_booking(
-                    booking_request
                 )
 
                 # ---------------------------------------------
@@ -762,12 +988,14 @@ def handle_vapi_tools(
                     "success"
                 ):
 
-                    confirmed_time = format_slot(
-                        booking_result.get(
-                            "start_time"
-                        ),
-                        booking_result.get(
-                            "end_time"
+                    confirmed_time = (
+                        format_slot(
+                            booking_result[
+                                "start_time"
+                            ],
+                            booking_result[
+                                "end_time"
+                            ],
                         )
                     )
 
@@ -778,17 +1006,21 @@ def handle_vapi_tools(
                     )
 
                     vapi_result = (
-                        "The booking was successfully "
-                        "saved in the database. "
-                        f"Confirmed date: {booking_date}. "
-                        f"Confirmed time: {confirmed_time}. "
-                        "Tell the caller their lesson "
-                        "has been successfully booked "
-                        "for this exact date and time."
+                        "The booking was "
+                        "successfully saved in "
+                        "the database. "
+                        f"Confirmed date: "
+                        f"{booking_date}. "
+                        f"Confirmed time: "
+                        f"{confirmed_time}. "
+                        "Tell the caller their "
+                        "lesson has been "
+                        "successfully booked for "
+                        "this exact date and time."
                     )
 
                 # ---------------------------------------------
-                # BOOKING CONFLICT
+                # BOOKING FAILED / CONFLICT
                 # ---------------------------------------------
 
                 else:
@@ -802,25 +1034,26 @@ def handle_vapi_tools(
 
                     if available_slots:
 
-                        slot_labels = [
-                            slot["label"]
-                            for slot
-                            in available_slots
-                        ]
-
-                        alternatives = ", ".join(
-                            slot_labels
+                        alternatives = (
+                            ", ".join(
+                                slot["label"]
+                                for slot
+                                in available_slots
+                            )
                         )
 
                         vapi_result = (
-                            "The selected slot could not "
-                            "be booked because it is no "
-                            "longer available. "
+                            "The selected slot "
+                            "could not be booked "
+                            "because it is no longer "
+                            "available. "
                             "The currently available "
-                            f"times are: {alternatives}. "
-                            "Apologize briefly and ask "
-                            "the caller to choose one of "
-                            "these remaining times."
+                            "times are: "
+                            f"{alternatives}. "
+                            "Apologize briefly and "
+                            "ask the caller to choose "
+                            "one of these remaining "
+                            "times."
                         )
 
                     else:
@@ -828,15 +1061,19 @@ def handle_vapi_tools(
                         error_message = (
                             booking_result.get(
                                 "message",
-                                "Booking could not be completed."
+                                "Booking could not "
+                                "be completed.",
                             )
                         )
 
                         vapi_result = (
-                            "The booking was not completed. "
-                            f"Reason: {error_message} "
-                            "Do not tell the caller that "
-                            "their booking is confirmed."
+                            "The booking was not "
+                            "completed. "
+                            f"Reason: "
+                            f"{error_message} "
+                            "Do not tell the caller "
+                            "that their booking is "
+                            "confirmed."
                         )
 
             # =================================================
@@ -845,52 +1082,54 @@ def handle_vapi_tools(
 
             else:
 
-                error_text = (
-                    f"Unknown tool: {tool_name}"
+                vapi_result = (
+                    "The requested tool "
+                    f"'{tool_name}' is not "
+                    "supported by the booking API."
                 )
 
-                logger.warning(
-                    "VAPI UNKNOWN TOOL | "
-                    "tool=%s | toolCallId=%s",
-                    tool_name,
-                    tool_call_id
+            # -------------------------------------------------
+            # CLEAN RESPONSE STRING
+            # -------------------------------------------------
+
+            vapi_result = (
+                clean_vapi_string(
+                    vapi_result
                 )
-
-                results.append({
-                    "toolCallId": tool_call_id,
-                    "error": clean_vapi_string(
-                        error_text
-                    )
-                })
-
-                continue
-
-            # =================================================
-            # IMPORTANT:
-            # VAPI RESULT MUST BE SINGLE-LINE STRING
-            # =================================================
-
-            vapi_result = clean_vapi_string(
-                vapi_result
             )
 
+            # -------------------------------------------------
+            # VAPI RESPONSE
+            # -------------------------------------------------
+
             results.append({
-                "toolCallId": tool_call_id,
-                "result": vapi_result
+                "name":
+                    tool_name,
+
+                "toolCallId":
+                    tool_call_id,
+
+                "result":
+                    vapi_result,
             })
 
-            # For debugging availability result.
-            # Does not expose phone number.
-            if tool_name == "check_available_slots":
+            # -------------------------------------------------
+            # DEBUG LOGS
+            # -------------------------------------------------
+
+            if tool_name == (
+                "check_available_slots"
+            ):
 
                 logger.info(
                     "VAPI TOOL RESULT | "
                     "tool=%s | "
                     "toolCallId=%s | "
                     "result=%s",
+
                     tool_name,
                     tool_call_id,
-                    vapi_result
+                    vapi_result,
                 )
 
             else:
@@ -900,40 +1139,62 @@ def handle_vapi_tools(
                     "tool=%s | "
                     "toolCallId=%s | "
                     "completed=true",
+
                     tool_name,
-                    tool_call_id
+                    tool_call_id,
                 )
 
         # =====================================================
         # TOOL ERROR
         # =====================================================
 
-        except Exception as error:
+        except Exception:
 
             logger.exception(
                 "VAPI TOOL ERROR | "
                 "tool=%s | "
                 "toolCallId=%s",
+
                 tool_name,
-                tool_call_id
+                tool_call_id,
             )
 
-            error_message = clean_vapi_string(
-                "The booking system could not complete "
-                "this request. Please do not claim that "
-                "availability was checked or that a booking "
-                "was confirmed."
+            error_result = (
+                clean_vapi_string(
+                    "The booking system "
+                    "could not complete this "
+                    "request. "
+                    "Do not claim that "
+                    "availability was checked "
+                    "or that a booking was "
+                    "confirmed."
+                )
             )
 
-            # Vapi supports an error string in results.
             results.append({
-                "toolCallId": tool_call_id,
-                "error": error_message
+                "name":
+                    tool_name,
+
+                "toolCallId":
+                    tool_call_id,
+
+                "result":
+                    error_result,
             })
 
     # =========================================================
     # FINAL RESPONSE
     # =========================================================
+
+    if not results:
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No valid Vapi tool "
+                "calls could be processed."
+            ),
+        )
 
     final_response = {
         "results": results
@@ -942,7 +1203,7 @@ def handle_vapi_tools(
     logger.info(
         "VAPI FINAL RESPONSE SENT | "
         "result_count=%s",
-        len(results)
+        len(results),
     )
 
     return final_response
