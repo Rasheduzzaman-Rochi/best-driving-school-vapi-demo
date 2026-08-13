@@ -782,6 +782,7 @@ def handle_vapi_tools(
         # =====================================================
 
         results.append({
+            "name": tool_name,
             "toolCallId": tool_call_id,
             "result": vapi_result
         })
