@@ -1,2 +1,15 @@
 .DS_Store
 *.log
+# Backend secrets
+backend/.env
+.env
+
+# Python virtual environment
+backend/.venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+.DS_Store

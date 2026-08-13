@@ -1,5 +1,5 @@
-.git
-.gitignore
-README.md
+.venv
+.env
+__pycache__
+*.pyc
 .DS_Store
-*.log
