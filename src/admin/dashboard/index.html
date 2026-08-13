@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Booking Dashboard | Best Driving School</title>
+
+  <link rel="stylesheet" href="../admin.css" />
+</head>
+
+<body class="dashboard-body">
+
+  <div class="dashboard-layout">
+
+    <aside class="sidebar">
+
+      <div class="sidebar-brand">
+        <div class="admin-logo">BDS</div>
+
+        <div>
+          <strong>Best Driving School</strong>
+          <span>Admin Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/admin/dashboard/" class="active">
+          Dashboard
+        </a>
+
+        <a href="/">
+          Public Website
+        </a>
+      </nav>
+
+      <button id="logoutButton" class="logout-btn">
+        Sign Out
+      </button>
+
+    </aside>
+
+
+    <main class="dashboard-main">
+
+      <header class="dashboard-header">
+
+        <div>
+          <p class="eyebrow-admin">BOOKING MANAGEMENT</p>
+
+          <h1>Admin Dashboard</h1>
+
+          <p id="adminWelcome">
+            Loading administrator...
+          </p>
+        </div>
+
+        <div class="schedule-badge">
+          <span>School Hours</span>
+          <strong>9:00 AM – 7:00 PM</strong>
+          <small>Sunday – Thursday</small>
+        </div>
+
+      </header>
+
+
+      <section class="stats-grid">
+
+        <article class="stat-card">
+          <span>Today's Bookings</span>
+          <strong id="todayCount">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Upcoming</span>
+          <strong id="upcomingCount">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Confirmed</span>
+          <strong id="confirmedCount">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Total Bookings</span>
+          <strong id="totalCount">0</strong>
+        </article>
+
+      </section>
+
+
+      <section class="dashboard-section">
+
+        <div class="section-title-row">
+
+          <div>
+            <h2>Bookings</h2>
+            <p>
+              Customers booked through the AI receptionist.
+            </p>
+          </div>
+
+          <button
+            id="refreshButton"
+            class="secondary-admin-btn"
+          >
+            Refresh
+          </button>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="bookingTableBody">
+
+              <tr>
+                <td colspan="7" class="empty-state">
+                  Loading bookings...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <section class="dashboard-section">
+
+        <div class="section-title-row">
+          <div>
+            <h2>Standard Daily Schedule</h2>
+            <p>
+              Five 2-hour driving lesson slots.
+            </p>
+          </div>
+        </div>
+
+        <div class="slot-grid">
+
+          <div class="slot-card">
+            <strong>09:00 AM</strong>
+            <span>to 11:00 AM</span>
+          </div>
+
+          <div class="slot-card">
+            <strong>11:00 AM</strong>
+            <span>to 01:00 PM</span>
+          </div>
+
+          <div class="slot-card">
+            <strong>01:00 PM</strong>
+            <span>to 03:00 PM</span>
+          </div>
+
+          <div class="slot-card">
+            <strong>03:00 PM</strong>
+            <span>to 05:00 PM</span>
+          </div>
+
+          <div class="slot-card">
+            <strong>05:00 PM</strong>
+            <span>to 07:00 PM</span>
+          </div>
+
+        </div>
+
+        <p class="closed-days">
+          Friday and Saturday are closed.
+        </p>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="../supabase-config.js"></script>
+  <script src="dashboard.js"></script>
+
+</body>
+</html>

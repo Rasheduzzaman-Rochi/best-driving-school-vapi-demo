@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,6 +22,10 @@
 
       <a class="phone-link" href="tel:+14697097613">
         (469) 709-7613
+      </a>
+
+      <a class="phone-link" href="/admin/login/">
+        Admin Login
       </a>
     </div>
   </header>
@@ -49,11 +54,7 @@
               Talk to Ava
             </a>
 
-            <a
-              href="https://bestdrivingschool.us/"
-              target="_blank"
-              class="secondary-btn"
-            >
+            <a href="https://bestdrivingschool.us/" target="_blank" class="secondary-btn">
               Visit Official Website
             </a>
           </div>
@@ -186,22 +187,13 @@
 
           <!-- VAPI WIDGET START -->
 
-          <script
-            src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
-            async
+          <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async
             type="text/javascript">
-          </script>
+            </script>
 
-          <vapi-widget
-            public-key="2ce2a938-47fd-436a-91b4-ac20e760ec12"
-            assistant-id="0da51325-2c1b-4c4e-9732-30d33f375370"
-            mode="voice"
-            theme="light"
-            size="full"
-            radius="large"
-            main-label="Talk to Ava"
-            start-button-text="Start Voice Conversation"
-            end-button-text="End Conversation"
+          <vapi-widget public-key="2ce2a938-47fd-436a-91b4-ac20e760ec12"
+            assistant-id="0da51325-2c1b-4c4e-9732-30d33f375370" mode="voice" theme="light" size="full" radius="large"
+            main-label="Talk to Ava" start-button-text="Start Voice Conversation" end-button-text="End Conversation"
             empty-voice-message="Click below and ask Ava about driving lessons or road tests">
           </vapi-widget>
 
@@ -279,4 +271,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
