@@ -3,7 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>Best Driving School AI Assistant</title>
 
@@ -12,8 +16,143 @@
     content="Best Driving School AI voice receptionist powered by Vapi with live lesson availability, booking, and admin management."
   />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- Main Website CSS -->
+  <link
+    rel="stylesheet"
+    href="/style.css?v=20260813-4"
+  />
+
+  <!--
+    Critical header styles are included here so that
+    the Admin Portal button still looks correct even
+    if an older stylesheet is cached by the browser.
+  -->
+  <style>
+    .brand-home-link,
+    .brand-home-link:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .header-actions .phone-link,
+    .header-actions .phone-link:visited {
+      color: #147c74;
+      text-decoration: none;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .header-actions .phone-link:hover {
+      color: #0f625c;
+    }
+
+    .header-actions .admin-login-btn,
+    .header-actions .admin-login-btn:visited {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 42px;
+      padding: 0 20px;
+
+      background: #147c74;
+      color: #ffffff;
+
+      border: 1px solid #147c74;
+      border-radius: 10px;
+
+      text-decoration: none;
+
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+
+      white-space: nowrap;
+
+      transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .header-actions .admin-login-btn:hover {
+      background: #0f625c;
+      border-color: #0f625c;
+      color: #ffffff;
+
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 6px 16px rgba(20, 124, 116, 0.2);
+    }
+
+    .admin-portal-action {
+      margin-top: 32px;
+    }
+
+    .footer-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .footer-admin-link,
+    .footer-admin-link:visited {
+      color: inherit;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .footer-admin-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .header-actions {
+        gap: 10px;
+      }
+
+      .header-actions .admin-login-btn {
+        min-height: 38px;
+        padding: 0 14px;
+        font-size: 13px;
+      }
+
+      .header-actions .phone-link {
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .nav-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .header-actions {
+        width: 100%;
+        margin-left: 0;
+
+        justify-content: space-between;
+      }
+
+      .footer-actions {
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
+
 
 <body>
 
@@ -22,40 +161,58 @@
   ====================================================== -->
 
   <header class="navbar">
+
     <div class="container nav-content">
 
       <!-- Brand -->
-      <div class="brand">
+      <a
+        href="/"
+        class="brand brand-home-link"
+        aria-label="Best Driving School home"
+      >
+
         <div class="brand-mark">
           BDS
         </div>
 
         <div>
-          <h2>Best Driving School</h2>
-          <span>AI Receptionist Demo</span>
+
+          <h2>
+            Best Driving School
+          </h2>
+
+          <span>
+            AI Receptionist Demo
+          </span>
+
         </div>
-      </div>
+
+      </a>
+
 
       <!-- Header Actions -->
       <div class="header-actions">
 
         <a
+          class="phone-link"
+          href="tel:+14697097613"
+          aria-label="Call Best Driving School"
+        >
+          (469) 709-7613
+        </a>
+
+
+        <a
           class="admin-login-btn"
           href="/admin/login/"
         >
-          Admin Login
-        </a>
-
-        <a
-          class="phone-link"
-          href="tel:+14697097613"
-        >
-          (469) 709-7613
+          Admin Portal
         </a>
 
       </div>
 
     </div>
+
   </header>
 
 
@@ -65,12 +222,15 @@
 
   <main>
 
+
     <!-- ===================================================
          HERO SECTION
     ==================================================== -->
 
     <section class="hero">
+
       <div class="container hero-grid">
+
 
         <!-- Hero Copy -->
         <div class="hero-copy">
@@ -79,16 +239,19 @@
             AI-POWERED CUSTOMER EXPERIENCE
           </div>
 
+
           <h1>
             Meet <span>Ava</span>, your
             AI driving school assistant
           </h1>
+
 
           <p class="hero-description">
             Ask about driving lessons, road tests, course options,
             published pricing, live lesson availability, or book
             a driving lesson through a natural voice conversation.
           </p>
+
 
           <div class="hero-actions">
 
@@ -98,6 +261,7 @@
             >
               Talk to Ava
             </a>
+
 
             <a
               href="https://bestdrivingschool.us/"
@@ -110,10 +274,21 @@
 
           </div>
 
+
           <div class="trust-row">
-            <span>✓ AI disclosure</span>
-            <span>✓ Live availability</span>
-            <span>✓ Real booking</span>
+
+            <span>
+              ✓ AI disclosure
+            </span>
+
+            <span>
+              ✓ Live availability
+            </span>
+
+            <span>
+              ✓ Real booking
+            </span>
+
           </div>
 
         </div>
@@ -123,35 +298,67 @@
         <div class="assistant-card">
 
           <div class="status">
+
             <span class="status-dot"></span>
+
             AI Assistant Ready
+
           </div>
+
 
           <div class="avatar">
             A
           </div>
 
-          <h3>Ava</h3>
+
+          <h3>
+            Ava
+          </h3>
+
 
           <p>
             Best Driving School AI Receptionist
           </p>
 
+
           <div class="assistant-features">
 
             <div>
-              <strong>24/7</strong>
-              <span>AI Assistance</span>
+
+              <strong>
+                24/7
+              </strong>
+
+              <span>
+                AI Assistance
+              </span>
+
             </div>
 
-            <div>
-              <strong>Voice</strong>
-              <span>Conversation</span>
-            </div>
 
             <div>
-              <strong>Live</strong>
-              <span>Booking System</span>
+
+              <strong>
+                Voice
+              </strong>
+
+              <span>
+                Conversation
+              </span>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Live
+              </strong>
+
+              <span>
+                Booking System
+              </span>
+
             </div>
 
           </div>
@@ -159,7 +366,9 @@
         </div>
 
       </div>
+
     </section>
+
 
 
     <!-- ===================================================
@@ -167,13 +376,16 @@
     ==================================================== -->
 
     <section class="services">
+
       <div class="container">
+
 
         <div class="section-heading">
 
           <span>
             WHAT AVA CAN HELP WITH
           </span>
+
 
           <h2>
             One assistant, multiple customer needs
@@ -182,7 +394,9 @@
         </div>
 
 
+
         <div class="service-grid">
+
 
           <!-- Service 1 -->
           <article class="service-card">
@@ -191,9 +405,11 @@
               01
             </div>
 
+
             <h3>
               Teen Driver Education
             </h3>
+
 
             <p>
               Learn about teen driving programs,
@@ -204,6 +420,7 @@
           </article>
 
 
+
           <!-- Service 2 -->
           <article class="service-card">
 
@@ -211,9 +428,11 @@
               02
             </div>
 
+
             <h3>
               Adult Driving Lessons
             </h3>
+
 
             <p>
               Ask about adult driving lessons,
@@ -224,6 +443,7 @@
           </article>
 
 
+
           <!-- Service 3 -->
           <article class="service-card">
 
@@ -231,9 +451,11 @@
               03
             </div>
 
+
             <h3>
               Road Test Preparation
             </h3>
+
 
             <p>
               Get verified information about
@@ -244,6 +466,7 @@
           </article>
 
 
+
           <!-- Service 4 -->
           <article class="service-card">
 
@@ -251,9 +474,11 @@
               04
             </div>
 
+
             <h3>
               Live Lesson Booking
             </h3>
+
 
             <p>
               Ava can check real lesson availability,
@@ -264,22 +489,28 @@
           </article>
 
         </div>
+
       </div>
+
     </section>
 
 
+
     <!-- ===================================================
-         HOW IT WORKS
+         HOW THE BOOKING SYSTEM WORKS
     ==================================================== -->
 
     <section class="capabilities">
+
       <div class="container">
+
 
         <div class="section-heading">
 
           <span>
             HOW THE BOOKING SYSTEM WORKS
           </span>
+
 
           <h2>
             From voice conversation to confirmed booking
@@ -288,55 +519,82 @@
         </div>
 
 
+
         <div class="capability-list">
 
+
           <div>
-            <strong>1. Ask Ava</strong>
+
+            <strong>
+              1. Ask Ava
+            </strong>
+
 
             <p>
               The caller asks about lessons,
               programs, pricing, or available
               lesson times.
             </p>
+
           </div>
 
 
+
           <div>
-            <strong>2. Check Availability</strong>
+
+            <strong>
+              2. Check Availability
+            </strong>
+
 
             <p>
               Ava checks the live booking database
               and offers only the lesson slots that
               are currently available.
             </p>
+
           </div>
 
 
+
           <div>
-            <strong>3. Confirm Details</strong>
+
+            <strong>
+              3. Confirm Details
+            </strong>
+
 
             <p>
               Ava collects the customer's name,
               callback number, service, date,
               and selected lesson time.
             </p>
+
           </div>
 
 
+
           <div>
-            <strong>4. Create Booking</strong>
+
+            <strong>
+              4. Create Booking
+            </strong>
+
 
             <p>
               After customer confirmation,
               Ava creates the booking and stores
-              it securely in the booking database.
+              it in the booking database.
             </p>
+
           </div>
 
         </div>
 
       </div>
+
     </section>
+
 
 
     <!-- ===================================================
@@ -350,6 +608,7 @@
 
       <div class="container talk-grid">
 
+
         <!-- Demo Information -->
         <div>
 
@@ -357,9 +616,11 @@
             LIVE AI VOICE DEMO
           </span>
 
+
           <h2>
             Talk to Ava now
           </h2>
+
 
           <p>
             Try asking about driving lessons,
@@ -367,10 +628,12 @@
             availability.
           </p>
 
+
           <p>
             Please use fictional customer information
             while testing this demonstration.
           </p>
+
 
 
           <div class="example-prompts">
@@ -400,8 +663,10 @@
         </div>
 
 
+
         <!-- Voice Widget -->
         <div class="voice-widget-card">
+
 
           <div class="voice-heading">
 
@@ -409,11 +674,13 @@
               Voice Assistant
             </span>
 
+
             <small>
               Microphone access required
             </small>
 
           </div>
+
 
 
           <!-- =============================================
@@ -446,6 +713,7 @@
           ============================================== -->
 
 
+
           <p class="privacy-note">
             This is an AI demonstration.
             Please do not provide sensitive or real
@@ -455,7 +723,9 @@
         </div>
 
       </div>
+
     </section>
+
 
 
     <!-- ===================================================
@@ -463,13 +733,16 @@
     ==================================================== -->
 
     <section class="capabilities">
+
       <div class="container">
+
 
         <div class="section-heading">
 
           <span>
             AGENT CAPABILITIES
           </span>
+
 
           <h2>
             More than a simple voice bot
@@ -478,7 +751,9 @@
         </div>
 
 
+
         <div class="capability-list">
+
 
           <!-- Capability 1 -->
           <div>
@@ -486,6 +761,7 @@
             <strong>
               Knowledge Retrieval
             </strong>
+
 
             <p>
               Answers business questions using the
@@ -495,12 +771,14 @@
           </div>
 
 
+
           <!-- Capability 2 -->
           <div>
 
             <strong>
               Live Availability
             </strong>
+
 
             <p>
               Checks real lesson availability before
@@ -510,12 +788,14 @@
           </div>
 
 
+
           <!-- Capability 3 -->
           <div>
 
             <strong>
               Real Booking
             </strong>
+
 
             <p>
               Creates confirmed lesson bookings only
@@ -526,12 +806,14 @@
           </div>
 
 
+
           <!-- Capability 4 -->
           <div>
 
             <strong>
               Double-Booking Protection
             </strong>
+
 
             <p>
               Re-checks selected lesson slots and prevents
@@ -541,12 +823,14 @@
           </div>
 
 
+
           <!-- Capability 5 -->
           <div>
 
             <strong>
               Hallucination Guardrails
             </strong>
+
 
             <p>
               Avoids inventing prices, schedules,
@@ -557,12 +841,14 @@
           </div>
 
 
+
           <!-- Capability 6 -->
           <div>
 
             <strong>
               Human Escalation
             </strong>
+
 
             <p>
               Offers human assistance when requested
@@ -575,21 +861,26 @@
         </div>
 
       </div>
+
     </section>
+
 
 
     <!-- ===================================================
          ADMIN MANAGEMENT SECTION
     ==================================================== -->
 
-    <section class="services">
+    <section class="services admin-management-section">
+
       <div class="container">
+
 
         <div class="section-heading">
 
           <span>
             ADMIN MANAGEMENT
           </span>
+
 
           <h2>
             Manage lesson bookings from one dashboard
@@ -598,17 +889,22 @@
         </div>
 
 
+
         <div class="service-grid">
 
+
+          <!-- Admin Feature A -->
           <article class="service-card">
 
             <div class="icon">
               A
             </div>
 
+
             <h3>
               Secure Admin Login
             </h3>
+
 
             <p>
               Authorized administrators can sign in
@@ -618,15 +914,19 @@
           </article>
 
 
+
+          <!-- Admin Feature B -->
           <article class="service-card">
 
             <div class="icon">
               B
             </div>
 
+
             <h3>
               View Bookings
             </h3>
+
 
             <p>
               Review customer bookings,
@@ -637,34 +937,42 @@
           </article>
 
 
+
+          <!-- Admin Feature C -->
           <article class="service-card">
 
             <div class="icon">
               C
             </div>
 
+
             <h3>
               Cancel Bookings
             </h3>
 
+
             <p>
               Administrators can cancel bookings,
-              automatically allowing those lesson
-              times to become available again.
+              allowing those lesson times to become
+              available again.
             </p>
 
           </article>
 
 
+
+          <!-- Admin Feature D -->
           <article class="service-card">
 
             <div class="icon">
               D
             </div>
 
+
             <h3>
               Live Database Sync
             </h3>
+
 
             <p>
               Voice bookings and admin updates
@@ -677,10 +985,9 @@
         </div>
 
 
-        <div
-          class="hero-actions"
-          style="margin-top: 32px;"
-        >
+
+        <!-- Admin Portal CTA -->
+        <div class="admin-portal-action">
 
           <a
             href="/admin/login/"
@@ -692,9 +999,11 @@
         </div>
 
       </div>
+
     </section>
 
   </main>
+
 
 
   <!-- =====================================================
@@ -705,11 +1014,13 @@
 
     <div class="container footer-content">
 
+
       <div>
 
         <strong>
           Best Driving School AI Demo
         </strong>
+
 
         <p>
           AI voice receptionist with live
@@ -719,20 +1030,34 @@
       </div>
 
 
-      <p>
-        Plano · Allen · Frisco · McKinney
-      </p>
+
+      <div class="footer-actions">
+
+        <a
+          href="/admin/login/"
+          class="footer-admin-link"
+        >
+          Admin Portal
+        </a>
+
+
+        <span>
+          Plano · Allen · Frisco · McKinney
+        </span>
+
+      </div>
 
     </div>
 
   </footer>
 
 
+
   <!-- =====================================================
        WEBSITE JAVASCRIPT
   ====================================================== -->
 
-  <script src="script.js"></script>
+  <script src="/script.js?v=20260813-4"></script>
 
 </body>
 

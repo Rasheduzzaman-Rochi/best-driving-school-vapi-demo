@@ -504,4 +504,110 @@ footer p {
       justify-content: space-between;
     }
   }
+
+  /* =========================================================
+   HEADER ACTIONS
+========================================================= */
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .header-actions .phone-link,
+  .header-actions .phone-link:visited {
+    color: #147c74;
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .header-actions .phone-link:hover {
+    color: #0f625c;
+  }
+
+  /* Admin Portal Button */
+
+  .header-actions .admin-login-btn,
+  .header-actions .admin-login-btn:visited {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+    padding: 0 20px;
+
+    background: #ffffff;
+    color: #147c74;
+
+    border: 1px solid #147c74;
+    border-radius: 10px;
+
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+
+    white-space: nowrap;
+
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .header-actions .admin-login-btn:hover {
+    background: #147c74;
+    color: #ffffff;
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 6px 16px rgba(20, 124, 116, 0.18);
+  }
+
+  /* =========================================================
+   RESPONSIVE HEADER
+========================================================= */
+
+  @media (max-width: 768px) {
+    .nav-content {
+      gap: 16px;
+    }
+
+    .header-actions {
+      gap: 10px;
+    }
+
+    .header-actions .admin-login-btn {
+      padding: 0 14px;
+      min-height: 38px;
+      font-size: 13px;
+    }
+
+    .header-actions .phone-link {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .navbar {
+      padding: 14px 0;
+    }
+
+    .nav-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-actions {
+      width: 100%;
+      margin-left: 0;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
 }
