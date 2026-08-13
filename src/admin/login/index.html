@@ -1,71 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>Admin Login | Best Driving School</title>
 
-  <link rel="stylesheet" href="../admin.css" />
+  <meta
+    name="description"
+    content="Secure admin portal for managing Best Driving School lesson bookings."
+  />
+
+  <!-- Admin Styles -->
+  <link
+    rel="stylesheet"
+    href="../admin.css?v=20260813-3"
+  />
 </head>
+
 
 <body class="admin-body">
 
+  <!-- =====================================================
+       ADMIN LOGIN PAGE
+  ====================================================== -->
+
   <main class="login-page">
 
-    <section class="login-card">
+    <section
+      class="login-card"
+      aria-labelledby="loginTitle"
+    >
 
-      <a href="/" class="back-link">
-        ← Back to website
+      <!-- =================================================
+           BACK TO MAIN WEBSITE
+      ================================================== -->
+
+      <a
+        href="/"
+        class="back-home-link"
+        aria-label="Back to Best Driving School website"
+      >
+        <span aria-hidden="true">←</span>
+        Back to Main Website
       </a>
 
+
+      <!-- =================================================
+           ADMIN BRAND
+      ================================================== -->
+
       <div class="admin-brand">
-        <div class="admin-logo">BDS</div>
+
+        <div
+          class="admin-logo"
+          aria-hidden="true"
+        >
+          BDS
+        </div>
 
         <div>
-          <h1>Admin Portal</h1>
-          <p>Best Driving School</p>
+
+          <h1>
+            Admin Portal
+          </h1>
+
+          <p>
+            Best Driving School
+          </p>
+
         </div>
+
       </div>
+
+
+      <!-- =================================================
+           LOGIN INTRODUCTION
+      ================================================== -->
 
       <div class="login-heading">
-        <h2>Welcome back</h2>
+
+        <span class="admin-eyebrow">
+          SECURE STAFF ACCESS
+        </span>
+
+        <h2 id="loginTitle">
+          Welcome back
+        </h2>
+
         <p>
-          Sign in to manage bookings and view the driving schedule.
+          Sign in to view lesson bookings,
+          manage the driving schedule,
+          and cancel bookings when needed.
         </p>
+
       </div>
 
-      <form id="loginForm">
 
+      <!-- =================================================
+           LOGIN FORM
+      ================================================== -->
+
+      <form
+        id="loginForm"
+        novalidate
+      >
+
+        <!-- Email -->
         <div class="form-group">
-          <label for="email">Email address</label>
+
+          <label for="email">
+            Email address
+          </label>
 
           <input
             type="email"
             id="email"
+            name="email"
             placeholder="admin@example.com"
             required
             autocomplete="email"
+            inputmode="email"
+            aria-required="true"
           />
+
         </div>
 
+
+        <!-- Password -->
         <div class="form-group">
-          <label for="password">Password</label>
+
+          <label for="password">
+            Password
+          </label>
 
           <input
             type="password"
             id="password"
+            name="password"
             placeholder="Enter your password"
             required
             autocomplete="current-password"
+            aria-required="true"
           />
+
         </div>
 
+
+        <!-- Login Message -->
         <div
           id="loginMessage"
           class="form-message"
+          role="status"
+          aria-live="polite"
         ></div>
 
+
+        <!-- Submit -->
         <button
           id="loginButton"
           type="submit"
@@ -76,18 +172,75 @@
 
       </form>
 
+
+      <!-- =================================================
+           SECURITY NOTICE
+      ================================================== -->
+
+      <div class="login-security-box">
+
+        <span
+          class="security-icon"
+          aria-hidden="true"
+        >
+          ✓
+        </span>
+
+        <div>
+
+          <strong>
+            Authorized staff only
+          </strong>
+
+          <p>
+            Access to this dashboard is restricted
+            to approved Best Driving School administrators.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           FOOTNOTE
+      ================================================== -->
+
       <p class="security-text">
-        Authorized Best Driving School staff only.
+        Best Driving School · Booking Management System
       </p>
 
     </section>
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="../supabase-config.js"></script>
-  <script src="login.js"></script>
+  <!-- =====================================================
+       SUPABASE
+  ====================================================== -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+
+  <!-- =====================================================
+       ADMIN CONFIG
+  ====================================================== -->
+
+  <script
+    src="../supabase-config.js?v=20260813-3"
+  ></script>
+
+
+  <!-- =====================================================
+       LOGIN LOGIC
+  ====================================================== -->
+
+  <script
+    src="login.js?v=20260813-3"
+  ></script>
 
 </body>
+
 </html>
