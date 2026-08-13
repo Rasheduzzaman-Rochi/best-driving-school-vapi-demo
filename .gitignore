@@ -1,15 +1,18 @@
+# macOS
 .DS_Store
-*.log
-# Backend secrets
-backend/.env
-.env
 
-# Python virtual environment
-backend/.venv/
+# Logs
+*.log
+
+# Environment / secrets
+.env
+backend/.env
+
+# Python virtual environments
 .venv/
+backend/.venv/
 
 # Python cache
 __pycache__/
 *.pyc
-
-.DS_Store
+*.pyo
