@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from typing import Optional
@@ -286,7 +287,10 @@ def handle_vapi_tools(
 
         results.append({
             "toolCallId": tool_call_id,
-            "result": result
+            "result": json.dumps(
+        result,
+        separators=(",", ":")
+            )
         })
 
     return {
